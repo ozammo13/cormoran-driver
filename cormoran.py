@@ -8,7 +8,6 @@ imported into other code by adding 'from cormoran import Cormoran'
 import math
 # import os
 import signal
-import pygame
 import sys
 import time
 
@@ -28,31 +27,6 @@ elif sys.platform == "win32":
     print(f'{sys.platform} detected')
     print('Please use any other operating system. Exiting...')
     sys.exit()
-
-BLACK = pygame.Color('black')
-WHITE = pygame.Color('white')
-
-
-class TextPrint(object):
-    def __init__(self):
-        self.reset()
-        self.font = pygame.font.Font(None, 20)
-
-    def tprint(self, screen, textString):
-        textBitmap = self.font.render(textString, True, BLACK)
-        screen.blit(textBitmap, (self.x, self.y))
-        self.y += self.line_height
-
-    def reset(self):
-        self.x = 10
-        self.y = 10
-        self.line_height = 15
-
-    def indent(self):
-        self.x += 10
-
-    def unindent(self):
-        self.x -= 10
 
 
 class Wheel(object):
@@ -284,7 +258,7 @@ class Cormoran2WD(object):
         This is the handler for SIGINT events sent by the user pressing ctrl-c.
         """
         print(" Ctrl-c was pressed. Exiting...")
-        pygame.quit()
+        # pygame.quit()
         sys.exit()
 
     def main(self):
@@ -295,50 +269,47 @@ class Cormoran2WD(object):
         # self.controller.button_y.when_pressed = self.on_y_pressed
 
         print('STARTING NOW')
-        pygame.init()
-        self.screen = pygame.display.set_mode((500, 700))
-        pygame.display.set_caption("Cormoran Controller")
+
         done = False
-        clock = pygame.time.Clock()
-        self.textPrint = TextPrint()
+
         while not done:
             # PYGAME BUSINESS
-            for event in pygame.event.get():  # User did something.
-                if event.type == pygame.QUIT:  # If user clicked close.
-                    done = True  # Flag that we are done so we exit this loop.
-                elif event.type == pygame.JOYBUTTONDOWN:
-                    print("Joystick button pressed.")
-                elif event.type == pygame.JOYBUTTONUP:
-                    print("Joystick button released.")
-            self.screen.fill(WHITE)
-            self.textPrint.reset()
-            joystick_count = pygame.joystick.get_count()
-            self.textPrint.tprint(
-                self.screen, "Number of controllers connected: {}".format(joystick_count))
-            self.textPrint.indent()
-            if joystick_count != 0:
-                joystick = pygame.joystick.Joystick(0)
-                joystick.init()
-                try:
-                    jid = joystick.get_instance_id()
-                except AttributeError:
-                    # get_instance_id() is an SDL2 method
-                    jid = joystick.get_id()
-                self.textPrint.tprint(self.screen, "Joystick {}".format(jid))
-                name = joystick.get_name()
-                self.textPrint.tprint(
-                    self.screen, "Joystick name: {}".format(name))
-                axes = joystick.get_numaxes()
-                axiss = []
-                for i in range(axes):
-                    axis = joystick.get_axis(i)
-                    axiss.append(axis)
-                trigs = (axiss[5]+1)/2 - (axiss[2]+1)/2
-                # print(axiss)
-                leftyright = axiss[0]
-            else:
-                trigs = 0
-                leftyright = 0
+            # for event in pygame.event.get():  # User did something.
+            #     if event.type == pygame.QUIT:  # If user clicked close.
+            #         done = True  # Flag that we are done so we exit this loop.
+            #     elif event.type == pygame.JOYBUTTONDOWN:
+            #         print("Joystick button pressed.")
+            #     elif event.type == pygame.JOYBUTTONUP:
+            #         print("Joystick button released.")
+            # self.screen.fill(WHITE)
+            # self.textPrint.reset()
+            # joystick_count = pygame.joystick.get_count()
+            # self.textPrint.tprint(
+            #     self.screen, "Number of controllers connected: {}".format(joystick_count))
+            # self.textPrint.indent()
+            # if joystick_count != 0:
+            #     joystick = pygame.joystick.Joystick(0)
+            #     joystick.init()
+            #     try:
+            #         jid = joystick.get_instance_id()
+            #     except AttributeError:
+            #         # get_instance_id() is an SDL2 method
+            #         jid = joystick.get_id()
+            #     self.textPrint.tprint(self.screen, "Joystick {}".format(jid))
+            #     name = joystick.get_name()
+            #     self.textPrint.tprint(
+            #         self.screen, "Joystick name: {}".format(name))
+            #     axes = joystick.get_numaxes()
+            #     axiss = []
+            #     for i in range(axes):
+            #         axis = joystick.get_axis(i)
+            #         axiss.append(axis)
+            #     trigs = (axiss[5]+1)/2 - (axiss[2]+1)/2
+            #     # print(axiss)
+            #     leftyright = axiss[0]
+            # else:
+            #     trigs = 0
+            #     leftyright = 0
 
             # print("Number of joysticks: {}".format(joystick_count))
             # trigs = self.controller.trigger_r.value - self.controller.trigger_l.value
@@ -347,6 +318,7 @@ class Cormoran2WD(object):
             if self.locomotion_mode == 1:
                 # ACKERMAN
                 # ackerman_angle = self.controller.axis_l.x * 45.0
+                leftyright = 0
                 ackerman_angle = leftyright * 22.5
 
                 if ackerman_angle != 0:
@@ -408,8 +380,9 @@ class Cormoran2WD(object):
             #         if self.controller.button_trigger_r.is_pressed:
             #             self.motor_4_angle = self.motor_4_angle + 0.5
             # self.pushSetpoints()
-            pygame.display.flip()
-            clock.tick(60)
+            # pygame.display.flip()
+            # clock.tick(60)
+            time.sleep(1/60)
 
 
 if __name__ == "__main__":
