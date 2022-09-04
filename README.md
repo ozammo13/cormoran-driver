@@ -1,2 +1,2 @@
 # cormoran driver
- basic python driver for cormoran hardware
+ Basic python driver for cormoran hardware.
