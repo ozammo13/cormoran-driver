@@ -16,14 +16,13 @@ import odrive
 import serial
 # import odrive.enums
 
+import threading
+
 if sys.platform.startswith("linux"):
-    # linux
     print(f'{sys.platform} detected')
 elif sys.platform == "darwin":
-    # MAC OS X
     print(f'{sys.platform} detected')
 elif sys.platform == "win32":
-    # Windows (either 32-bit or 64-bit)
     print(f'{sys.platform} detected')
     print('Please use any other operating system. Exiting...')
     sys.exit()
@@ -129,7 +128,7 @@ class Wheel(object):
         self.odrive.axis1.controller.input_vel = self.drive_setpoint * self.drive_gearing
 
 
-class Cormoran2WD(object):
+class Cormoran2WD(threading.Thread):
     """
     main driver class for cormoran robot
     """
@@ -141,10 +140,12 @@ class Cormoran2WD(object):
         self.wheelbase = wheelbase
         self.track_width = track_width
         signal.signal(signal.SIGINT, self.handler)
+        self.input=[0,0]
         self.wheels = []
         for serial in odrive_serials:
             self.wheels.append(Wheel(serial))
-        print(f'{len(self.wheels)} wheels have been initialised')
+        print(f'{len(self.wheels)} wheels have been instantiated')
+        threading.Thread.__init__(self)
 
     def connect_to_hardware(self):
         self.simulation = False
@@ -192,6 +193,7 @@ class Cormoran2WD(object):
         # self.evens.axis1.controller.config.control_mode = odrive.enums.CONTROL_MODE_VELOCITY_CONTROL
         # self.evens.axis1.controller.config.vel_ramp_rate = 20.0
         # self.evens.axis1.controller.config.input_mode = odrive.enums.INPUT_MODE_VEL_RAMP
+        return
 
     def on_a_pressed(self, button):
         """
@@ -235,23 +237,33 @@ class Cormoran2WD(object):
                 self.wheel_select = 1
             print(f"    Now calibrating wheel {self.wheel_select}")
 
-    def pushSetpoints(self):
+    def pushSetpoints(self, setpoints):
         # message = '{: 06.2f},{: 06.2f},{: 06.2f},{: 06.2f};'.format(
         #     self.motor_1_angle,
         #     self.motor_2_angle,
         #     self.motor_3_angle,
         #     self.motor_4_angle)
         # print(message[:-2], end="\r")
-        self.textPrint.tprint(self.screen, f'{message}')
+        # self.textPrint.tprint(self.screen, f'{message}')
         if self.simulation == False:
-            self.arduino.write(message.encode())
-            time.sleep(0.001)
-            data = self.arduino.readline().decode()[:-2]
-            # print(data)
-            self.odds.axis0.controller.input_vel = self.motor_1_velocity
-            self.evens.axis0.controller.input_vel = self.motor_2_velocity
-            self.odds.axis1.controller.input_vel = self.motor_3_velocity
-            self.evens.axis1.controller.input_vel = self.motor_4_velocity
+            feedback = []
+            for x in len(self.wheels):
+                feedback.append([])
+                self.wheels[x].wheel_angle = setpoints[x][0]
+                feedback[x].append(self.wheels[x].wheel_angle)
+                self.wheels[x].wheel_speed = setpoints[x][1]
+                feedback[x].append(self.wheels[x].wheel_speed)
+            # self.arduino.write(message.encode())
+            # time.sleep(0.001)
+            # data = self.arduino.readline().decode()[:-2]
+            # # print(data)
+            # self.odds.axis0.controller.input_vel = self.motor_1_velocity
+            # self.evens.axis0.controller.input_vel = self.motor_2_velocity
+            # self.odds.axis1.controller.input_vel = self.motor_3_velocity
+            # self.evens.axis1.controller.input_vel = self.motor_4_velocity
+        elif self.simulation == True:
+            feedback=setpoints
+        return feedback
 
     def handler(self, signum, frame):  # pylint: disable=W0613
         """
@@ -261,7 +273,7 @@ class Cormoran2WD(object):
         # pygame.quit()
         sys.exit()
 
-    def main(self):
+    def run(self):
 
         # self.controller.button_a.when_pressed = self.on_a_pressed
         # self.controller.button_b.when_pressed = self.on_b_pressed
@@ -269,10 +281,7 @@ class Cormoran2WD(object):
         # self.controller.button_y.when_pressed = self.on_y_pressed
 
         print('STARTING NOW')
-
-        done = False
-
-        while not done:
+        while True:
             # PYGAME BUSINESS
             # for event in pygame.event.get():  # User did something.
             #     if event.type == pygame.QUIT:  # If user clicked close.
@@ -318,23 +327,34 @@ class Cormoran2WD(object):
             if self.locomotion_mode == 1:
                 # ACKERMAN
                 # ackerman_angle = self.controller.axis_l.x * 45.0
-                leftyright = 0
-                ackerman_angle = leftyright * 22.5
-
+                leftyright = self.input[0]
+                trigs = self.input[1]
+                ackerman_angle = leftyright
+                setpoints = [[],[]]
                 if ackerman_angle != 0:
-                    radius = self.wheelbase / \
-                        math.tan(math.radians(ackerman_angle))
-                    self.wheels[0].wheel_angle = math.degrees(
-                        math.atan(self.wheelbase / (radius + 0.5 * self.wheelbase)))
-                    self.wheels[1].wheel_angle = math.degrees(
-                        math.atan(self.wheelbase / (radius - 0.5 * self.wheelbase)))
+                    radius = self.wheelbase / math.tan(math.radians(ackerman_angle))
+
+                    # self.wheels[0].wheel_angle = math.degrees( math.atan(self.wheelbase / (radius + 0.5 * self.wheelbase)))
+                    setpoints[0].append(math.degrees( math.atan(self.wheelbase / (radius + 0.5 * self.wheelbase))))
+                    # self.wheels[1].wheel_angle = math.degrees( math.atan(self.wheelbase / (radius - 0.5 * self.wheelbase)))
+                    setpoints[1].append(math.degrees( math.atan(self.wheelbase / (radius - 0.5 * self.wheelbase))))
                 else:
-                    self.wheels[0].wheel_angle = 0.0
-                    self.wheels[1].wheel_angle = 0.0
+                    # self.wheels[0].wheel_angle = 0.0
+                    setpoints[0].append(0.0)
+                    # self.wheels[1].wheel_angle = 0.0
+                    setpoints[1].append(0.0)
+
                 # self.motor_3_angle = 0.0
                 # self.motor_4_angle = 0.0
-                self.wheels[0].wheel_speed = trigs
-                self.wheels[1].wheel_speed = trigs
+                # self.wheels[0].wheel_speed = trigs
+                setpoints[0].append(trigs)
+                # self.wheels[1].wheel_speed = trigs
+                setpoints[1].append(trigs)
+                print('')
+                print(f'setpoints = {setpoints}')
+                feedback = self.pushSetpoints(setpoints)
+                print(f'feedback = {feedback}')
+
                 # self.motor_3_velocity = trigs * self.gearing
                 # self.motor_4_velocity = trigs * self.gearing
             # if self.locomotion_mode == 2:
