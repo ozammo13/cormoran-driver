@@ -32,7 +32,7 @@ class TextPrint(object):
 if __name__ == '__main__':
     robot = Cormoran2WD(['208737A03548', '307F347D3131'],
                         wheelbase=0.0254 * 12 * 2, track_width=0.0254 * 12 * 2)
-    robot.connect_to_hardware()
+    # robot.connect_to_hardware()
     robot.start()
 
     pygame.init()
@@ -79,13 +79,19 @@ if __name__ == '__main__':
         else:
             trigs = 0
             leftyright = 0
+        
         pygame.display.flip()
         clock.tick(60)
 
-        if sys.platform.startswith("linux"):
-            steering = axiss[0]
-            throttle = (axiss[4]+1)/2 - (axiss[5]+1)/2
-        elif sys.platform == "darwin":
-            steering = axiss[0]
-            throttle = (axiss[5]+1)/2 - (axiss[2]+1)/2
-        robot.input=[steering, throttle]
+        if joystick_count != 0:
+            if sys.platform.startswith("linux"):
+                steering = axiss[0]
+                throttle = (axiss[4]+1)/2 - (axiss[5]+1)/2
+            elif sys.platform == "darwin":
+                steering = axiss[0]
+                throttle = (axiss[5]+1)/2 - (axiss[2]+1)/2
+            robot.input=[steering, throttle]
+        else:
+            robot.input=[0,0]
+
+        
