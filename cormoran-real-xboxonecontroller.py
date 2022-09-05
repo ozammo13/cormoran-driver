@@ -90,7 +90,7 @@ if __name__ == '__main__':
             elif sys.platform == "darwin":
                 steering = axiss[0]
                 throttle = (axiss[5]+1)/2 - (axiss[2]+1)/2
-            robot.input=[steering, throttle]
+            robot.input=[steering*30, throttle]
         else:
             robot.input=[0.0,0.0]
 
