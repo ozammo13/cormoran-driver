@@ -92,6 +92,6 @@ if __name__ == '__main__':
                 throttle = (axiss[5]+1)/2 - (axiss[2]+1)/2
             robot.input=[steering, throttle]
         else:
-            robot.input=[0,0]
+            robot.input=[0.0,0.0]
 
         
