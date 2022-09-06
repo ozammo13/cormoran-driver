@@ -3,8 +3,8 @@ from setuptools import setup
 setup(
     name='cormoran-driver',
     version='0.1',
+    requires='odrive, pyserial',
     packages=[''],
-    requires='os, sys, progressbar, odrive',
     url='',
     license='',
     author='Ben Green',
