@@ -4,6 +4,7 @@ setup(
     name='cormoran-driver',
     version='0.1',
     packages=[''],
+    requires='os, sys, progressbar, odrive',
     url='',
     license='',
     author='Ben Green',
