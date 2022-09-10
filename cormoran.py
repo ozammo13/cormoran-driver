@@ -10,6 +10,7 @@ import math
 import signal
 import sys
 import time
+import numpy as np
 
 # import inputs
 import odrive
@@ -140,7 +141,7 @@ class Cormoran2WD(threading.Thread):
         self.wheelbase = wheelbase
         self.track_width = track_width
         # signal.signal(signal.SIGINT, self.handler)
-        self.input=[0,0]
+        self.inputs=[0.0,0.0]
         self.wheels = []
         for serial in odrive_serials:
             self.wheels.append(Wheel(serial))
@@ -198,6 +199,7 @@ class Cormoran2WD(threading.Thread):
 
     
     def close(self):
+        print('YOU ASKED ME TO QUIT SO I WILL QUIT')
         self.exiting = True
         return
 
@@ -275,143 +277,178 @@ class Cormoran2WD(threading.Thread):
         """
         This is the handler for SIGINT events sent by the user pressing ctrl-c.
         """
-        print(" Ctrl-c was pressed. Exiting...")
+        # print(" Ctrl-c was pressed. Exiting...")
         # pygame.quit()
         # sys.exit()
         self.exiting = True
 
+    def run_once(self):
+        # PYGAME BUSINESS
+        # for event in pygame.event.get():  # User did something.
+        #     if event.type == pygame.QUIT:  # If user clicked close.
+        #         done = True  # Flag that we are done so we exit this loop.
+        #     elif event.type == pygame.JOYBUTTONDOWN:
+        #         print("Joystick button pressed.")
+        #     elif event.type == pygame.JOYBUTTONUP:
+        #         print("Joystick button released.")
+        # self.screen.fill(WHITE)
+        # self.textPrint.reset()
+        # joystick_count = pygame.joystick.get_count()
+        # self.textPrint.tprint(
+        #     self.screen, "Number of controllers connected: {}".format(joystick_count))
+        # self.textPrint.indent()
+        # if joystick_count != 0:
+        #     joystick = pygame.joystick.Joystick(0)
+        #     joystick.init()
+        #     try:
+        #         jid = joystick.get_instance_id()
+        #     except AttributeError:
+        #         # get_instance_id() is an SDL2 method
+        #         jid = joystick.get_id()
+        #     self.textPrint.tprint(self.screen, "Joystick {}".format(jid))
+        #     name = joystick.get_name()
+        #     self.textPrint.tprint(
+        #         self.screen, "Joystick name: {}".format(name))
+        #     axes = joystick.get_numaxes()
+        #     axiss = []
+        #     for i in range(axes):
+        #         axis = joystick.get_axis(i)
+        #         axiss.append(axis)
+        #     trigs = (axiss[5]+1)/2 - (axiss[2]+1)/2
+        #     # print(axiss)
+        #     leftyright = axiss[0]
+        # else:
+        #     trigs = 0
+        #     leftyright = 0
+
+        # print("Number of joysticks: {}".format(joystick_count))
+        # trigs = self.controller.trigger_r.value - self.controller.trigger_l.value
+        # trigs = 0
+        # leftyright = 0
+        if self.locomotion_mode == 1:
+            # ACKERMAN
+            # ackerman_angle = self.controller.axis_l.x * 45.0
+            # leftyright = self.inputs[0]
+            # throttle = self.inputs[1]
+            ackerman_angle = math.radians(self.inputs[0])
+            ackerman_speed = self.inputs[1]
+            setpoints = [[],[]]
+            
+            
+            # -------- Ideal Ackerman calculations
+            try:
+                ackerman_radius = self.wheelbase/math.sin(ackerman_angle)
+            except ZeroDivisionError as zde:
+                ackerman_radius = np.inf
+            rear_radius = math.cos(ackerman_angle)*ackerman_radius
+            
+            
+            # Wheel 0 calculations
+            wheel_0_angle = math.atan(self.wheelbase/(rear_radius + 0.5*self.track_width))
+            try:
+                wheel_0_radius = self.wheelbase/math.sin(wheel_0_angle)
+            except:
+                wheel_0_radius = np.inf
+            wheel_0_speed = ackerman_speed * (wheel_0_radius/ackerman_radius)
+            if np.isnan(wheel_0_speed):
+                wheel_0_speed = ackerman_speed
+            setpoints[0].append(round(math.degrees(wheel_0_angle), 4))
+            setpoints[0].append(round(wheel_0_speed, 4))
+            
+            
+            # Wheel 1 calculations
+            wheel_1_angle = math.atan(self.wheelbase/(rear_radius - 0.5*self.track_width))
+            try:
+                wheel_1_radius = self.wheelbase/math.sin(wheel_1_angle)
+            except:
+                wheel_1_radius = np.inf
+            wheel_1_speed = ackerman_speed * (wheel_1_radius/ackerman_radius)
+            if np.isnan(wheel_1_speed):
+                wheel_1_speed = ackerman_speed
+            setpoints[1].append(round(math.degrees(wheel_1_angle), 4))
+            setpoints[1].append(round(wheel_1_speed, 4))
+
+
+            # if ackerman_angle != 0:
+            #     radius = self.wheelbase / math.tan(math.radians(ackerman_angle))
+
+            #     # self.wheels[0].wheel_angle = math.degrees( math.atan(self.wheelbase / (radius + 0.5 * self.wheelbase)))
+            #     setpoints[0].append(math.degrees( math.atan(self.wheelbase / (radius + 0.5 * self.wheelbase))))
+            #     # self.wheels[1].wheel_angle = math.degrees( math.atan(self.wheelbase / (radius - 0.5 * self.wheelbase)))
+            #     setpoints[1].append(math.degrees( math.atan(self.wheelbase / (radius - 0.5 * self.wheelbase))))
+            # else:
+            #     # self.wheels[0].wheel_angle = 0.0
+            #     setpoints[0].append(0.0)
+            #     # self.wheels[1].wheel_angle = 0.0
+            #     setpoints[1].append(0.0)
+
+            # # self.motor_3_angle = 0.0
+            # # self.motor_4_angle = 0.0
+            # # self.wheels[0].wheel_speed = throttle
+            # setpoints[0].append(throttle)
+            # # self.wheels[1].wheel_speed = throttle
+            # setpoints[1].append(throttle)
+            print('--------------------------------')
+            print(f'setpoint = {setpoints}')
+            feedback = self.pushSetpoints(setpoints)
+            print(f'feedback = {feedback}')
+
+            # self.motor_3_velocity = trigs * self.gearing
+            # self.motor_4_velocity = trigs * self.gearing
+        # if self.locomotion_mode == 2:
+        #     # PIVOT
+        #     self.motor_1_angle = 45.0
+        #     self.motor_2_angle = -45.0
+        #     self.motor_3_angle = -45.0
+        #     self.motor_4_angle = 45.0
+        #     self.motor_1_velocity = trigs * self.gearing
+        #     self.motor_2_velocity = -trigs * self.gearing
+        #     self.motor_3_velocity = trigs * self.gearing
+        #     self.motor_4_velocity = -trigs * self.gearing
+        # if self.locomotion_mode == 3:
+        #     # CRAB
+        #     self.motor_1_angle = 90.0
+        #     self.motor_2_angle = -90.0
+        #     self.motor_3_angle = -90.0
+        #     self.motor_4_angle = 90.0
+        #     self.motor_1_velocity = trigs * self.gearing
+        #     self.motor_2_velocity = -trigs * self.gearing
+        #     self.motor_3_velocity = -trigs * self.gearing
+        #     self.motor_4_velocity = trigs * self.gearing
+        # if self.locomotion_mode == 4:
+        #     # CALIBRATION
+        #     if self.wheel_select == 1:
+        #         if self.controller.button_trigger_l.is_pressed:
+        #             self.motor_1_angle = self.motor_1_angle - 0.5
+        #         if self.controller.button_trigger_r.is_pressed:
+        #             self.motor_1_angle = self.motor_1_angle + 0.5
+        #     if self.wheel_select == 2:
+        #         if self.controller.button_trigger_l.is_pressed:
+        #             self.motor_2_angle = self.motor_2_angle - 0.5
+        #         if self.controller.button_trigger_r.is_pressed:
+        #             self.motor_2_angle = self.motor_2_angle + 0.5
+        #     if self.wheel_select == 3:
+        #         if self.controller.button_trigger_l.is_pressed:
+        #             self.motor_3_angle = self.motor_3_angle - 0.5
+        #         if self.controller.button_trigger_r.is_pressed:
+        #             self.motor_3_angle = self.motor_3_angle + 0.5
+        #     if self.wheel_select == 4:
+        #         if self.controller.button_trigger_l.is_pressed:
+        #             self.motor_4_angle = self.motor_4_angle - 0.5
+        #         if self.controller.button_trigger_r.is_pressed:
+        #             self.motor_4_angle = self.motor_4_angle + 0.5
+        # self.pushSetpoints()
+        # pygame.display.flip()
+        # clock.tick(60)
+        return
+
     def run(self):
-
-        # self.controller.button_a.when_pressed = self.on_a_pressed
-        # self.controller.button_b.when_pressed = self.on_b_pressed
-        # self.controller.button_x.when_pressed = self.on_x_pressed
-        # self.controller.button_y.when_pressed = self.on_y_pressed
-
         print('STARTING NOW')
         while True:
-            # PYGAME BUSINESS
-            # for event in pygame.event.get():  # User did something.
-            #     if event.type == pygame.QUIT:  # If user clicked close.
-            #         done = True  # Flag that we are done so we exit this loop.
-            #     elif event.type == pygame.JOYBUTTONDOWN:
-            #         print("Joystick button pressed.")
-            #     elif event.type == pygame.JOYBUTTONUP:
-            #         print("Joystick button released.")
-            # self.screen.fill(WHITE)
-            # self.textPrint.reset()
-            # joystick_count = pygame.joystick.get_count()
-            # self.textPrint.tprint(
-            #     self.screen, "Number of controllers connected: {}".format(joystick_count))
-            # self.textPrint.indent()
-            # if joystick_count != 0:
-            #     joystick = pygame.joystick.Joystick(0)
-            #     joystick.init()
-            #     try:
-            #         jid = joystick.get_instance_id()
-            #     except AttributeError:
-            #         # get_instance_id() is an SDL2 method
-            #         jid = joystick.get_id()
-            #     self.textPrint.tprint(self.screen, "Joystick {}".format(jid))
-            #     name = joystick.get_name()
-            #     self.textPrint.tprint(
-            #         self.screen, "Joystick name: {}".format(name))
-            #     axes = joystick.get_numaxes()
-            #     axiss = []
-            #     for i in range(axes):
-            #         axis = joystick.get_axis(i)
-            #         axiss.append(axis)
-            #     trigs = (axiss[5]+1)/2 - (axiss[2]+1)/2
-            #     # print(axiss)
-            #     leftyright = axiss[0]
-            # else:
-            #     trigs = 0
-            #     leftyright = 0
-
-            # print("Number of joysticks: {}".format(joystick_count))
-            # trigs = self.controller.trigger_r.value - self.controller.trigger_l.value
-            # trigs = 0
-            # leftyright = 0
-            if self.locomotion_mode == 1:
-                # ACKERMAN
-                # ackerman_angle = self.controller.axis_l.x * 45.0
-                leftyright = self.input[0]
-                trigs = self.input[1]
-                ackerman_angle = leftyright
-                setpoints = [[],[]]
-                if ackerman_angle != 0:
-                    radius = self.wheelbase / math.tan(math.radians(ackerman_angle))
-
-                    # self.wheels[0].wheel_angle = math.degrees( math.atan(self.wheelbase / (radius + 0.5 * self.wheelbase)))
-                    setpoints[0].append(math.degrees( math.atan(self.wheelbase / (radius + 0.5 * self.wheelbase))))
-                    # self.wheels[1].wheel_angle = math.degrees( math.atan(self.wheelbase / (radius - 0.5 * self.wheelbase)))
-                    setpoints[1].append(math.degrees( math.atan(self.wheelbase / (radius - 0.5 * self.wheelbase))))
-                else:
-                    # self.wheels[0].wheel_angle = 0.0
-                    setpoints[0].append(0.0)
-                    # self.wheels[1].wheel_angle = 0.0
-                    setpoints[1].append(0.0)
-
-                # self.motor_3_angle = 0.0
-                # self.motor_4_angle = 0.0
-                # self.wheels[0].wheel_speed = trigs
-                setpoints[0].append(trigs)
-                # self.wheels[1].wheel_speed = trigs
-                setpoints[1].append(trigs)
-                print('')
-                print(f'setpoints = {setpoints}')
-                feedback = self.pushSetpoints(setpoints)
-                print(f'feedback = {feedback}')
-
-                # self.motor_3_velocity = trigs * self.gearing
-                # self.motor_4_velocity = trigs * self.gearing
-            # if self.locomotion_mode == 2:
-            #     # PIVOT
-            #     self.motor_1_angle = 45.0
-            #     self.motor_2_angle = -45.0
-            #     self.motor_3_angle = -45.0
-            #     self.motor_4_angle = 45.0
-            #     self.motor_1_velocity = trigs * self.gearing
-            #     self.motor_2_velocity = -trigs * self.gearing
-            #     self.motor_3_velocity = trigs * self.gearing
-            #     self.motor_4_velocity = -trigs * self.gearing
-            # if self.locomotion_mode == 3:
-            #     # CRAB
-            #     self.motor_1_angle = 90.0
-            #     self.motor_2_angle = -90.0
-            #     self.motor_3_angle = -90.0
-            #     self.motor_4_angle = 90.0
-            #     self.motor_1_velocity = trigs * self.gearing
-            #     self.motor_2_velocity = -trigs * self.gearing
-            #     self.motor_3_velocity = -trigs * self.gearing
-            #     self.motor_4_velocity = trigs * self.gearing
-            # if self.locomotion_mode == 4:
-            #     # CALIBRATION
-            #     if self.wheel_select == 1:
-            #         if self.controller.button_trigger_l.is_pressed:
-            #             self.motor_1_angle = self.motor_1_angle - 0.5
-            #         if self.controller.button_trigger_r.is_pressed:
-            #             self.motor_1_angle = self.motor_1_angle + 0.5
-            #     if self.wheel_select == 2:
-            #         if self.controller.button_trigger_l.is_pressed:
-            #             self.motor_2_angle = self.motor_2_angle - 0.5
-            #         if self.controller.button_trigger_r.is_pressed:
-            #             self.motor_2_angle = self.motor_2_angle + 0.5
-            #     if self.wheel_select == 3:
-            #         if self.controller.button_trigger_l.is_pressed:
-            #             self.motor_3_angle = self.motor_3_angle - 0.5
-            #         if self.controller.button_trigger_r.is_pressed:
-            #             self.motor_3_angle = self.motor_3_angle + 0.5
-            #     if self.wheel_select == 4:
-            #         if self.controller.button_trigger_l.is_pressed:
-            #             self.motor_4_angle = self.motor_4_angle - 0.5
-            #         if self.controller.button_trigger_r.is_pressed:
-            #             self.motor_4_angle = self.motor_4_angle + 0.5
-            # self.pushSetpoints()
-            # pygame.display.flip()
-            # clock.tick(60)
+            self.run_once()
             if self.exiting:
-                return 1
-            time.sleep(1/5)
+                return
+            time.sleep(1/50)
 
 
 if __name__ == "__main__":
