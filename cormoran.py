@@ -139,12 +139,13 @@ class Cormoran2WD(threading.Thread):
         self.wheel_select = 1
         self.wheelbase = wheelbase
         self.track_width = track_width
-        signal.signal(signal.SIGINT, self.handler)
+        # signal.signal(signal.SIGINT, self.handler)
         self.input=[0,0]
         self.wheels = []
         for serial in odrive_serials:
             self.wheels.append(Wheel(serial))
         print(f'{len(self.wheels)} wheels have been instantiated')
+        self.exiting = False
         threading.Thread.__init__(self)
 
     def connect_to_hardware(self):
@@ -193,6 +194,11 @@ class Cormoran2WD(threading.Thread):
         # self.evens.axis1.controller.config.control_mode = odrive.enums.CONTROL_MODE_VELOCITY_CONTROL
         # self.evens.axis1.controller.config.vel_ramp_rate = 20.0
         # self.evens.axis1.controller.config.input_mode = odrive.enums.INPUT_MODE_VEL_RAMP
+        return
+
+    
+    def close(self):
+        self.exiting = True
         return
 
     def on_a_pressed(self, button):
@@ -271,7 +277,8 @@ class Cormoran2WD(threading.Thread):
         """
         print(" Ctrl-c was pressed. Exiting...")
         # pygame.quit()
-        sys.exit()
+        # sys.exit()
+        self.exiting = True
 
     def run(self):
 
@@ -402,7 +409,9 @@ class Cormoran2WD(threading.Thread):
             # self.pushSetpoints()
             # pygame.display.flip()
             # clock.tick(60)
-            time.sleep(1/60)
+            if self.exiting:
+                return 1
+            time.sleep(1/5)
 
 
 if __name__ == "__main__":
