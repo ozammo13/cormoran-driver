@@ -330,7 +330,7 @@ class Cormoran2WD(threading.Thread):
             # ackerman_angle = self.controller.axis_l.x * 45.0
             # leftyright = self.inputs[0]
             # throttle = self.inputs[1]
-            ackerman_angle = math.radians(self.inputs[0])
+            ackerman_angle = self.inputs[0]
             ackerman_speed = self.inputs[1]
             setpoints = [[],[]]
             
@@ -352,8 +352,8 @@ class Cormoran2WD(threading.Thread):
             wheel_0_speed = ackerman_speed * (wheel_0_radius/ackerman_radius)
             if np.isnan(wheel_0_speed):
                 wheel_0_speed = ackerman_speed
-            setpoints[0].append(round(math.degrees(wheel_0_angle), 4))
-            setpoints[0].append(round(wheel_0_speed, 4))
+            setpoints[0].append(wheel_0_angle)
+            setpoints[0].append(wheel_0_speed)
             
             
             # Wheel 1 calculations
@@ -365,8 +365,8 @@ class Cormoran2WD(threading.Thread):
             wheel_1_speed = ackerman_speed * (wheel_1_radius/ackerman_radius)
             if np.isnan(wheel_1_speed):
                 wheel_1_speed = ackerman_speed
-            setpoints[1].append(round(math.degrees(wheel_1_angle), 4))
-            setpoints[1].append(round(wheel_1_speed, 4))
+            setpoints[1].append(wheel_1_angle)
+            setpoints[1].append(wheel_1_speed)
 
 
             # if ackerman_angle != 0:
@@ -388,10 +388,16 @@ class Cormoran2WD(threading.Thread):
             # setpoints[0].append(throttle)
             # # self.wheels[1].wheel_speed = throttle
             # setpoints[1].append(throttle)
-            print('--------------------------------')
-            print(f'setpoint = {setpoints}')
+
+
+
+            # print('--------------------------------')
+            # print(f'setpoint = {setpoints}')
+            # print(f'feedback = {feedback}')
+
             feedback = self.pushSetpoints(setpoints)
-            print(f'feedback = {feedback}')
+
+
 
             # self.motor_3_velocity = trigs * self.gearing
             # self.motor_4_velocity = trigs * self.gearing
@@ -440,7 +446,7 @@ class Cormoran2WD(threading.Thread):
         # self.pushSetpoints()
         # pygame.display.flip()
         # clock.tick(60)
-        return
+        return feedback
 
     def run(self):
         print('STARTING NOW')
