@@ -40,10 +40,14 @@ class Wheel(object):
         self.simulation = True
         self.drive_gearing = 20 * 39 / 15
         self.drive_setpoint = 0
+        self.drive_actual = 0
         self.drive_feedback = 0
         self.steering_gearing = 20 * 50 / 12
         self.steering_setpoint = 0
+        self.steering_actual = 0
         self.steering_feedback = 0
+        self.last_time = 0
+        self.total_dist = 0
 
     def connect_to_hardware(self):
         """established physical connection to motor driver hardware
@@ -128,6 +132,26 @@ class Wheel(object):
         self.drive_setpoint = speed
         self.odrive.axis1.controller.input_vel = self.drive_setpoint * self.drive_gearing
 
+    # set wheel inputs
+    def set_inputs(self, inputs):
+        if self.simulation == True:
+            # get feedback ready first
+            fb=[]
+            fb.append(float(self.steering_actual))
+            deltadist = (time.time()-self.last_time)*self.drive_actual
+            self.total_dist += deltadist
+            fb.append(float(self.total_dist))
+            # set new setpoints
+            self.last_time = time.time()
+            self.steering_setpoint = inputs[0]
+            self.steering_actual = self.steering_setpoint
+            self.drive_setpoint = inputs[1]
+            self.drive_actual = self.drive_setpoint
+        else:
+            pass
+        return fb
+    # get feedback
+
 
 class Cormoran2WD(threading.Thread):
     """
@@ -143,6 +167,7 @@ class Cormoran2WD(threading.Thread):
         # signal.signal(signal.SIGINT, self.handler)
         self.inputs=[0.0,0.0]
         self.wheels = []
+        self.speed = 0.0
         for serial in odrive_serials:
             self.wheels.append(Wheel(serial))
         print(f'{len(self.wheels)} wheels have been instantiated')
@@ -197,7 +222,6 @@ class Cormoran2WD(threading.Thread):
         # self.evens.axis1.controller.config.input_mode = odrive.enums.INPUT_MODE_VEL_RAMP
         return
 
-    
     def close(self):
         print('YOU ASKED ME TO QUIT SO I WILL QUIT')
         self.exiting = True
@@ -253,14 +277,16 @@ class Cormoran2WD(threading.Thread):
         #     self.motor_4_angle)
         # print(message[:-2], end="\r")
         # self.textPrint.tprint(self.screen, f'{message}')
-        if self.simulation == False:
-            feedback = []
-            for x in len(self.wheels):
-                feedback.append([])
-                self.wheels[x].wheel_angle = setpoints[x][0]
-                feedback[x].append(self.wheels[x].wheel_angle)
-                self.wheels[x].wheel_speed = setpoints[x][1]
-                feedback[x].append(self.wheels[x].wheel_speed)
+        # if self.simulation == False:
+        feedback = []
+        # print(len(self.wheels))
+        for x in range(len(self.wheels)):
+            fb = self.wheels[x].set_inputs(setpoints[x])
+            feedback.append(fb)
+            # self.wheels[x].wheel_angle = setpoints[x][0]
+            # feedback[x].append(self.wheels[x].wheel_angle)
+            # self.wheels[x].wheel_speed = setpoints[x][1]
+            # feedback[x].append(self.wheels[x].wheel_speed)
             # self.arduino.write(message.encode())
             # time.sleep(0.001)
             # data = self.arduino.readline().decode()[:-2]
@@ -269,8 +295,8 @@ class Cormoran2WD(threading.Thread):
             # self.evens.axis0.controller.input_vel = self.motor_2_velocity
             # self.odds.axis1.controller.input_vel = self.motor_3_velocity
             # self.evens.axis1.controller.input_vel = self.motor_4_velocity
-        elif self.simulation == True:
-            feedback=setpoints
+        # elif self.simulation == True:
+        #     feedback=setpoints
         return feedback
 
     def handler(self, signum, frame):  # pylint: disable=W0613
@@ -368,6 +394,13 @@ class Cormoran2WD(threading.Thread):
             setpoints[1].append(wheel_1_angle)
             setpoints[1].append(wheel_1_speed)
 
+            # Push the setpoints and get feedback
+            # ----feedback needs to include total distance travelled not speed
+            print(setpoints)
+            feedback = self.pushSetpoints(setpoints)
+
+
+
 
             # if ackerman_angle != 0:
             #     radius = self.wheelbase / math.tan(math.radians(ackerman_angle))
@@ -395,7 +428,7 @@ class Cormoran2WD(threading.Thread):
             # print(f'setpoint = {setpoints}')
             # print(f'feedback = {feedback}')
 
-            feedback = self.pushSetpoints(setpoints)
+            
 
 
 
