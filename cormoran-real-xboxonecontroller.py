@@ -6,6 +6,9 @@ import sys
 BLACK = pygame.Color('black')
 WHITE = pygame.Color('white')
 
+def mapp(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
 
 class TextPrint(object):
     def __init__(self):
@@ -32,8 +35,8 @@ class TextPrint(object):
 if __name__ == '__main__':
     robot = Cormoran2WD(['208737A03548', '307F347D3131'],
                         wheelbase=0.0254 * 12 * 2, track_width=0.0254 * 12 * 2)
-    # robot.connect_to_hardware()
-    robot.start()
+    robot.connect_to_hardware()
+    # robot.start()
 
     pygame.init()
     screen = pygame.display.set_mode((500, 700))
@@ -84,14 +87,18 @@ if __name__ == '__main__':
         clock.tick(60)
 
         if joystick_count != 0:
-            if sys.platform.startswith("linux"):
-                steering = axiss[0]
-                throttle = (axiss[4]+1)/2 - (axiss[5]+1)/2
-            elif sys.platform == "darwin":
-                steering = axiss[0]
-                throttle = (axiss[5]+1)/2 - (axiss[2]+1)/2
-            robot.input=[steering*30, throttle]
+            steering = mapp(axiss[0],-1.0, 1.0, -0.5, 0.5)
+            # if sys.platform.startswith("linux"):
+            #     throttle = axiss[4] - axiss[5]
+            # elif sys.platform == "darwin":
+            throttle = mapp(axiss[5] - axiss[2], -2, 2, -0.4, 0.4)
+            robot.inputs=[steering, throttle]
+            # print(axiss)
+            print(robot.inputs)
         else:
-            robot.input=[0.0,0.0]
+            robot.inputs=[0.0,0.0]
+
+        robot.run_once()
+
 
         
