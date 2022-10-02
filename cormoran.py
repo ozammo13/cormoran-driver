@@ -60,7 +60,7 @@ class Wheel(object):
         self.odrive.clear_errors()
         time.sleep(0.1)
 
-# STEERING SPECIFIC METHODS
+    # STEERING SPECIFIC METHODS
 
     def configure_steering(self):
         print('Configuring steering motor')
@@ -97,7 +97,7 @@ class Wheel(object):
         self.odrive.axis0.controller.input_pos = self.steering_setpoint * \
             self.steering_gearing / 360
 
-# DRIVE SPECIFIC METHODS
+    # DRIVE SPECIFIC METHODS
 
     def configure_drive(self):
         self.odrive.axis1.controller.config.control_mode = odrive.enums.CONTROL_MODE_VELOCITY_CONTROL
@@ -134,21 +134,26 @@ class Wheel(object):
 
     # set wheel inputs
     def set_inputs(self, inputs):
+        # get feedback ready first
+        fb=[]
+        fb.append(float(self.steering_actual))
+        deltadist = (time.time()-self.last_time)*self.drive_actual
+        self.total_dist += deltadist
+        fb.append(float(self.total_dist))
+        self.last_time = time.time()
+        # set new setpoints
+        self.steering_setpoint = inputs[0]
+        self.drive_setpoint = inputs[1]
+
         if self.simulation == True:
-            # get feedback ready first
-            fb=[]
-            fb.append(float(self.steering_actual))
-            deltadist = (time.time()-self.last_time)*self.drive_actual
-            self.total_dist += deltadist
-            fb.append(float(self.total_dist))
-            # set new setpoints
-            self.last_time = time.time()
-            self.steering_setpoint = inputs[0]
             self.steering_actual = self.steering_setpoint
-            self.drive_setpoint = inputs[1]
             self.drive_actual = self.drive_setpoint
         else:
-            pass
+            fb=[0.0,0.0]
+            self.odrive.axis0.controller.input_pos = self.steering_setpoint * self.steering_gearing / 6.28
+            self.steering_actual = self.odrive.axis0.encoder.pos_estimate
+            self.odrive.axis1.controller.input_vel = self.drive_setpoint * self.drive_gearing
+            self.drive_actual = self.odrive.axis1.encoder.vel_estimate
         return fb
     # get feedback
 
@@ -396,7 +401,7 @@ class Cormoran2WD(threading.Thread):
 
             # Push the setpoints and get feedback
             # ----feedback needs to include total distance travelled not speed
-            print(setpoints)
+            # print(setpoints)
             feedback = self.pushSetpoints(setpoints)
 
 
