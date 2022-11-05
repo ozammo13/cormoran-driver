@@ -34,7 +34,7 @@ class TextPrint(object):
 
 if __name__ == '__main__':
     robot = Cormoran2WD(['208737A03548', '307F347D3131'],
-                        wheelbase=0.0254 * 12 * 2, track_width=0.0254 * 12 * 2)
+                        wheelbase=0.0254 * 12 * 2, track_width=0.0254 * 12 * 3)
     robot.connect_to_hardware()
     # robot.start()
 
@@ -91,7 +91,9 @@ if __name__ == '__main__':
             # if sys.platform.startswith("linux"):
             #     throttle = axiss[4] - axiss[5]
             # elif sys.platform == "darwin":
-            throttle = mapp(axiss[5] - axiss[2], -2, 2, -0.4, 0.4)
+            print(axiss[4]- axiss[5])
+            # throttle = 0
+            throttle = mapp(axiss[4] - axiss[5], -2, 2, -0.4, 0.4)
             robot.inputs=[steering, throttle]
             # print(axiss)
             print(robot.inputs)
