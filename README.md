@@ -58,7 +58,9 @@ This can be a complicated procedure so if you get stuck please do not hesitate t
 
 ## Tips and Commands
 > A speed of 0.1 is recommended (same as the example code)
+
 > Angle works in radians
+
 > use computer vision to find the path the robot has to take.
 
 Kernow Robotics
