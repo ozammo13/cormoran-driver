@@ -8,7 +8,7 @@ while True:
     x=0
     while x < 200:
         x+=1
-        robot.inputs=[0.5,1.0]
+        robot.inputs=[0.5,1.0] 
         feedback = robot.run_once()
         print(feedback)
         time.sleep(1/50)

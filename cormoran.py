@@ -25,8 +25,6 @@ elif sys.platform == "darwin":
     print(f'{sys.platform} detected')
 elif sys.platform == "win32":
     print(f'{sys.platform} detected')
-    print('Please use any other operating system. Exiting...')
-    sys.exit()
 
 
 class Wheel(object):
