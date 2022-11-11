@@ -58,8 +58,8 @@ This can be a complicated procedure so if you get stuck please do not hesitate t
 2. open Zadig
 3. click options>list all devices
 4. plug your laptop into the robot under supervision
-5. Two usb devices should pop up starting with 3.5 and 3.6,select 1 of them check what driver pops up on the left side, if it isnt WInUSB then click replace driver
-6. repeat the previous step with the other usb device.
+5. four usb devices should pop up starting with 3.5 and 3.6,select 1 of them check what driver pops up on the left side, if it isnt WInUSB then click replace driver
+6. repeat the previous step with the other 3 usb devices.
 7. Restart your laptop
 
 ## Tips and Commands
@@ -68,5 +68,13 @@ This can be a complicated procedure so if you get stuck please do not hesitate t
 > Angle works in radians
 
 > use computer vision to find the path the robot has to take.
+
+> if the code  does not upload to the robot , use zadig to double check you have the correct drivers
+
+> if you get this error then restart your device.:
+> ```
+>12:21:42.368436000 [USB] Could not claim interface 0 on USB device: -12
+> ```
+
 
 Kernow Robotics
