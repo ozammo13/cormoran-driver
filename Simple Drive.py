@@ -7,7 +7,7 @@ robot.start()  #starts the robot, remove this line if you remove the connect har
 
 while True: #simple loop
 
-    robot.inputs = [0.5, 0.1]# robot.inputs =[wheel(radians),drive(meters a second)]
+    robot.inputs = [0.1, 0.1]# robot.inputs =[wheel(radians),drive(meters a second)]
     feedback = robot.run_once()
     print(feedback)
     time.sleep(1/50)
