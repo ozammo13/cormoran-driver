@@ -1,7 +1,8 @@
 # HACKATHON CHALLENGE - DRIVING
-## The Challenge
 
-Program the robot to follow a row of artificial grass(donated by [Cornwall Artifical Lawns](https://cornwallartificiallawns.co.uk/)) which is used to represent a row of daffodils.
+When automating the cropping of daffodils, the robot needs to be able to navigate along the row without damaging the crop. The rows may have slight curves or the robot may drift, so simply driving straight forward is not an option. A camera has been mounted on the top of the robot facing forward which can be used to navigate safely. We have provided this library and lengths of artificial grass so that we can model the situation in the field in the comfort of the Launchpad Studio! Use OpenCV (or other machine vision package) to direct the robot while following the 'row'. When you reach the end safely the challenge is complete. Happy Coding!
+
+Artificial grass donated by [Cornwall Artifical Lawns](https://cornwallartificiallawns.co.uk/))
 
 The rows of daffodils in the real life senario will look like however both these pictures are growing Agapanthus not Daffodil:
 
