@@ -67,9 +67,9 @@ This can be a complicated procedure so if you get stuck please do not hesitate t
 > if the code  does not upload to the robot , use zadig to double check you have the correct drivers
 
 > if you get this error:
-'''
-12:21:42.368436000 [USB] Could not claim interface ☻ on USB device: -12
-'''
+ ```
+12:21:42.368436000 [USB] Could not claim interface 0 on USB device: -12
+ ```
 then restart your device.
 
 Kernow Robotics
