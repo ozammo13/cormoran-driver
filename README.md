@@ -4,7 +4,7 @@ When automating the cropping of daffodils, the robot needs to be able to navigat
 
 Artificial grass donated by [Cornwall Artifical Lawns](https://cornwallartificiallawns.co.uk/)
 
-The rows of daffodils in the real life senario will look like however both these pictures are growing Agapanthus not Daffodil:
+The rows of daffodils in the real life scenario will look like however both these pictures are growing Agapanthus not Daffodil:
 
 ![The Rows Of Agapanthus](row1.jpeg)
 
