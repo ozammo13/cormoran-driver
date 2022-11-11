@@ -1,8 +1,13 @@
-# cormoran driver
- Basic python driver for cormoran hardware.
+# HACKATHON CHALLENGE - DRIVING
 ## The Challenge
 
 Program the robot to follow a row of artificial grass(donated by [Cornwall Artifical Lawns](https://cornwallartificiallawns.co.uk/)) which is used to represent a row of daffodils.
+
+The rows of daffodils in the real life senario will look like however both these pictures are growing Agapanthus not Daffodil:
+
+![The Rows Of Agapanthus](row1.jpeg)
+
+![A Single Row Of Agapanthus](row2.jpeg)
 
 **Image Here**
 
