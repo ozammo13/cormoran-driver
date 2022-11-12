@@ -58,21 +58,22 @@ class Wheel(object):
         self.odrive.clear_errors()
         time.sleep(0.1)
         self.odrive.config.enable_brake_resistor = False
-        self.odrive.config.dc_max_negative_current = -10000
-        self.odrive.config.max_regen_current = 10000
+        self.odrive.config.brake_resistance = 0
+        self.odrive.config.dc_max_negative_current = -81.0
+        self.odrive.config.max_regen_current = 80.0
 
     # STEERING SPECIFIC METHODS
 
     def configure_steering(self):
         print('Configuring steering motor')
-        self.odrive.axis0.motor.config.current_lim = 50
+        self.odrive.axis0.motor.config.current_lim = 80
         self.odrive.axis0.controller.config.vel_limit = 50
-        self.odrive.axis0.motor.config.calibration_current = 40
+        self.odrive.axis0.motor.config.calibration_current = 10
         self.odrive.axis0.controller.config.control_mode = odrive.enums.CONTROL_MODE_POSITION_CONTROL
         self.odrive.axis0.controller.config.input_mode = odrive.enums.INPUT_MODE_TRAP_TRAJ
         self.odrive.axis0.trap_traj.config.vel_limit = 40
-        self.odrive.axis0.trap_traj.config.accel_limit = 200
-        self.odrive.axis0.trap_traj.config.decel_limit = 200
+        self.odrive.axis0.trap_traj.config.accel_limit = 100
+        self.odrive.axis0.trap_traj.config.decel_limit = 100
 
     def calibrate_steering(self):
         print('Calibrating steering motor')
