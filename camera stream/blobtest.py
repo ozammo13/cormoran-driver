@@ -1,21 +1,31 @@
-# imports
-import cv2 as cv
+import cv2
 import numpy as np
 
-# Read image
-img = cv.imread('1.jpg', cv.IMREAD_GRAYSCALE)
-
-# Set up the blob detector.
-detector = cv2.SimpleBlobDetector()
-
-# Detect blobs from the image.
-keypoints = detector.detect(img)
-
-# Draw detected blobs as red circles.
-# cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS - This method draws detected blobs as red circles and ensures that the size of the circle corresponds to the size of the blob.
-blobs = cv.drawKeypoints(img, keypoints, blank,
-                         (0, 255, 255), cv.DRAW_MATCHES_FLAGS_DEFAULT)
-
-# Show keypoints
-cv.imshow('Blobs', blobs)
+image = cv2.VideoCapture(0)
+image = image.read()
 cv2.waitKey(0)
+
+# Grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Find Canny edges
+edged = cv2.Canny(gray, 30, 200)
+cv2.waitKey(0)
+
+# Finding Contours
+# Use a copy of the image e.g. edged.copy()
+# since findContours alters the image
+contours, hierarchy = cv2.findContours(edged,
+                                       cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+cv2.waitKey(0)
+
+print("Number of Contours found = " + str(len(contours)))
+
+# Draw all contours
+# -1 signifies drawing all contours
+cv2.drawContours(image, contours, -1, (0, 255, 0), 3)
+
+cv2.imshow('Contours', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
