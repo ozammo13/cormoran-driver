@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-image = cv2.VideoCapture(0)
-image = image.read()
+vid = cv2.VideoCapture(2)
+ret, image = vid.read()
 cv2.waitKey(0)
 
 # Grayscale

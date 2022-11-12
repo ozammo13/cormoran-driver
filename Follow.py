@@ -9,12 +9,12 @@ robot = Cormoran2WD(['208737A03548', '307F347D3131'],
                     wheelbase=0.0254 * 24, track_width=0.0254 * 36)  # initialises Robot, dont change this
 
 # connects to the robot. if the is removed then the code will run as a simulation
-robot.connect_to_hardware()
+# robot.connect_to_hardware()
 robot.start()  # starts the robot, remove this line if you remove the connect hardware line
 
 
 def drive(rotation):
-    # robot.inputs =[wheel(radians),drive(meters a second)]
+    # robot.inputs =[#(radians),drive(meters a second)]
     robot.inputs = [rotation, 0.1]
     #feedback = robot.run_once()
     # print(feedback)
@@ -33,8 +33,8 @@ dim = (640, 480)
 whitecountL = 0
 whitecountR = 0
 thresh = 300
-
 # Set minimum and maximum HSV values to display
+
 lower = np.array([hMin, sMin, vMin])
 upper = np.array([hMax, sMax, vMax])
 
@@ -53,8 +53,8 @@ while True:
     stream = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     stream = cv.flip(stream, 0)
     stream = cv.blur(stream, [30, 30])
-    stream = cv.inRange(stream, lower, upper)
-    stream = stream[400:480, 100:540]  # NEW = 80,440
+    filtered = cv.inRange(stream, lower, upper)
+    stream = filtered[400:480, 100:540]  # NEW = 80,440
 
     # colour count---------------------------------------------------------------
     left = stream[0:80, 0:220]
@@ -87,7 +87,7 @@ while True:
 
     whitecountL = 0
     whitecountR = 0
-    cv.imshow('frame', stream)
+    cv.imshow('frame', filtered)
     if cv.waitKey(1) == ord('q'):
         break
 # When everything done, release the capture
