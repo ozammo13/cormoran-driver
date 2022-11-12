@@ -7,7 +7,8 @@ def nothing(x):
 
 
 # Load image
-image = cv2.imread('1.jpg')
+cam = cv2.VideoCapture(2)
+ret, image = cam.read()
 dim = (640, 480)
 image = cv2.flip(image, 0)
 image = cv2.blur(image, [10, 10])
