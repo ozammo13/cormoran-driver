@@ -79,7 +79,7 @@ while True:
 
         completedCalibration = True
     
-    stream = cv.cvtColor(frame, cv.COLOR_BGR2HSV)5
+    stream = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     stream = cv.flip(stream, 0)
     stream = cv.blur(stream, [30, 30])
     stream = cv.inRange(stream, lower, upper)
