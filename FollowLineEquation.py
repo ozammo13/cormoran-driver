@@ -51,12 +51,13 @@ while True:
 
     frame = cv.resize(frame, dimensions, interpolation=cv.INTER_AREA)
 
+    # One time initialisation of the HSV values.
     if not completedCalibration:
-        # make view a binary black/white
+        # make view a binary black/white first.
         calibration = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         result = cv.threshold(calibration, 127, 255, cv.THRESH_BINARY)[1]
 
-        # count black and white pixels
+        # Count the black and white pixels to make a descision.
         whiteCount = 0
         blackCount = 0
         for x in range (dimensions[0]):
@@ -65,10 +66,10 @@ while True:
                     whiteCount += 1
                 else:
                     blackCount += 1
+
+        # Modify the HSV values based on the amount of black/white pixels.
         whiteDecimal = whiteCount / (dimensions[0]*dimensions[1])
         blackDecimal = blackCount / (dimensions[0]*dimensions[1])
-        
-        # modify values
         hMin = (whiteDecimal*10)+30
         sMin = math.degrees(math.atan(blackDecimal))+70
         vMin = 0        #fine
@@ -78,7 +79,7 @@ while True:
 
         completedCalibration = True
     
-    stream = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+    stream = cv.cvtColor(frame, cv.COLOR_BGR2HSV)5
     stream = cv.flip(stream, 0)
     stream = cv.blur(stream, [30, 30])
     stream = cv.inRange(stream, lower, upper)
