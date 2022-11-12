@@ -57,16 +57,23 @@ class Wheel(object):
         time.sleep(0.1)
         self.odrive.clear_errors()
         time.sleep(0.1)
+        self.odrive.config.enable_brake_resistor = False
+        self.odrive.config.brake_resistance = 0
+        self.odrive.config.dc_max_negative_current = -81.0
+        self.odrive.config.max_regen_current = 80.0
 
     # STEERING SPECIFIC METHODS
 
     def configure_steering(self):
         print('Configuring steering motor')
+        self.odrive.axis0.motor.config.current_lim = 80
+        self.odrive.axis0.controller.config.vel_limit = 50
+        self.odrive.axis0.motor.config.calibration_current = 10
         self.odrive.axis0.controller.config.control_mode = odrive.enums.CONTROL_MODE_POSITION_CONTROL
         self.odrive.axis0.controller.config.input_mode = odrive.enums.INPUT_MODE_TRAP_TRAJ
         self.odrive.axis0.trap_traj.config.vel_limit = 40
-        self.odrive.axis0.trap_traj.config.accel_limit = 200
-        self.odrive.axis0.trap_traj.config.decel_limit = 200
+        self.odrive.axis0.trap_traj.config.accel_limit = 100
+        self.odrive.axis0.trap_traj.config.decel_limit = 100
 
     def calibrate_steering(self):
         print('Calibrating steering motor')
@@ -133,7 +140,7 @@ class Wheel(object):
     # set wheel inputs
     def set_inputs(self, inputs):
         # get feedback ready first
-        fb=[]
+        fb = []
         fb.append(float(self.steering_actual))
         deltadist = (time.time()-self.last_time)*self.drive_actual
         self.total_dist += deltadist
@@ -147,8 +154,9 @@ class Wheel(object):
             self.steering_actual = self.steering_setpoint
             self.drive_actual = self.drive_setpoint
         else:
-            fb=[0.0,0.0]
-            self.odrive.axis0.controller.input_pos = self.steering_setpoint * self.steering_gearing / 6.28
+            fb = [0.0, 0.0]
+            self.odrive.axis0.controller.input_pos = self.steering_setpoint * \
+                self.steering_gearing / 6.28
             self.steering_actual = self.odrive.axis0.encoder.pos_estimate
             self.odrive.axis1.controller.input_vel = self.drive_setpoint * self.drive_gearing
             self.drive_actual = self.odrive.axis1.encoder.vel_estimate
@@ -168,7 +176,7 @@ class Cormoran2WD(threading.Thread):
         self.wheelbase = wheelbase
         self.track_width = track_width
         # signal.signal(signal.SIGINT, self.handler)
-        self.inputs=[0.0,0.0]
+        self.inputs = [0.0, 0.0]
         self.wheels = []
         self.speed = 0.0
         for serial in odrive_serials:
@@ -361,19 +369,18 @@ class Cormoran2WD(threading.Thread):
             # throttle = self.inputs[1]
             ackerman_angle = self.inputs[0]
             ackerman_speed = self.inputs[1]
-            setpoints = [[],[]]
-            
-            
+            setpoints = [[], []]
+
             # -------- Ideal Ackerman calculations
             try:
                 ackerman_radius = self.wheelbase/math.sin(ackerman_angle)
             except ZeroDivisionError as zde:
                 ackerman_radius = np.inf
             rear_radius = math.cos(ackerman_angle)*ackerman_radius
-            
-            
+
             # Wheel 0 calculations
-            wheel_0_angle = math.atan(self.wheelbase/(rear_radius + 0.5*self.track_width))
+            wheel_0_angle = math.atan(
+                self.wheelbase/(rear_radius + 0.5*self.track_width))
             try:
                 wheel_0_radius = self.wheelbase/math.sin(wheel_0_angle)
             except:
@@ -383,10 +390,10 @@ class Cormoran2WD(threading.Thread):
                 wheel_0_speed = ackerman_speed
             setpoints[0].append(wheel_0_angle)
             setpoints[0].append(wheel_0_speed)
-            
-            
+
             # Wheel 1 calculations
-            wheel_1_angle = math.atan(self.wheelbase/(rear_radius - 0.5*self.track_width))
+            wheel_1_angle = math.atan(
+                self.wheelbase/(rear_radius - 0.5*self.track_width))
             try:
                 wheel_1_radius = self.wheelbase/math.sin(wheel_1_angle)
             except:
@@ -401,9 +408,6 @@ class Cormoran2WD(threading.Thread):
             # ----feedback needs to include total distance travelled not speed
             # print(setpoints)
             feedback = self.pushSetpoints(setpoints)
-
-
-
 
             # if ackerman_angle != 0:
             #     radius = self.wheelbase / math.tan(math.radians(ackerman_angle))
@@ -425,15 +429,9 @@ class Cormoran2WD(threading.Thread):
             # # self.wheels[1].wheel_speed = throttle
             # setpoints[1].append(throttle)
 
-
-
             # print('--------------------------------')
             # print(f'setpoint = {setpoints}')
             # print(f'feedback = {feedback}')
-
-            
-
-
 
             # self.motor_3_velocity = trigs * self.gearing
             # self.motor_4_velocity = trigs * self.gearing
