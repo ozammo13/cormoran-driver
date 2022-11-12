@@ -51,6 +51,7 @@ while True:
 
     frame = cv.resize(frame, dimensions, interpolation=cv.INTER_AREA)
 
+    # - Jared Stiles -
     # One time initialisation of the HSV values.
     if not completedCalibration:
         # make view a binary black/white first.
@@ -78,6 +79,7 @@ while True:
         vMax = 128      #fine
 
         completedCalibration = True
+        # - Jared Stiles -
     
     stream = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
     stream = cv.flip(stream, 0)
