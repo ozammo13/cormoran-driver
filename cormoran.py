@@ -108,6 +108,7 @@ class Wheel(object):
         self.odrive.axis1.controller.config.control_mode = odrive.enums.CONTROL_MODE_VELOCITY_CONTROL
         self.odrive.axis1.controller.config.input_mode = odrive.enums.INPUT_MODE_VEL_RAMP
         self.odrive.axis1.controller.config.vel_ramp_rate = 100.0
+        self.odrive.axis1.controller.config.vel_limit = 2000
 
     def calibrate_drive(self):
         print('Calibrating drive motor')

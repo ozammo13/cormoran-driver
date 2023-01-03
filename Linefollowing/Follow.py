@@ -14,8 +14,6 @@ robot.start()  # starts the robot, remove this line if you remove the connect ha
 
 
 def drive(rotation):
-    if whitecountL < 50 or whitecountR < 50:
-        rotation = 0.2
     robot.inputs = [rotation, 0.1]
     feedback = robot.run_once()
     print(feedback)
