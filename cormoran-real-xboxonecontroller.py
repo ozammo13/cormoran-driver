@@ -6,6 +6,7 @@ import sys
 BLACK = pygame.Color('black')
 WHITE = pygame.Color('white')
 
+
 def mapp(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
@@ -82,25 +83,22 @@ if __name__ == '__main__':
         else:
             trigs = 0
             leftyright = 0
-        
+
         pygame.display.flip()
         clock.tick(60)
 
         if joystick_count != 0:
-            steering = mapp(axiss[0],-1.0, 1.0, -0.5, 0.5)
+            steering = mapp(axiss[0], -1.0, 1.0, -0.5, 0.5)
             # if sys.platform.startswith("linux"):
             #     throttle = axiss[4] - axiss[5]
             # elif sys.platform == "darwin":
-            print(axiss[4]- axiss[5])
+            print(axiss[4] - axiss[5])
             # throttle = 0
             throttle = mapp(axiss[4] - axiss[5], -2, 2, -0.4, 0.4)
-            robot.inputs=[steering, throttle]
+            robot.inputs = [steering, throttle]
             # print(axiss)
             print(robot.inputs)
         else:
-            robot.inputs=[0.0,0.0]
+            robot.inputs = [0.0, 0.0]
 
         robot.run_once()
-
-
-        
