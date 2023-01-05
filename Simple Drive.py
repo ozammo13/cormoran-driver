@@ -13,13 +13,13 @@ cspeed = 0
 
 def Drive(Rot, Speed, Time):
     if (cspeed != Speed):
-        Ramp(cspeed, Speed, Rot, 0.1)
+        RampSpeed(cspeed, Speed, Rot, 0.1)
     robot.inputs = [Rot, Speed]
     feedback = robot.run_once()
     time.sleep(Time)
 
 
-def Ramp(currentspeed, desiredSpeed, Rot, timeStep):
+def RampSpeed(currentspeed, desiredSpeed, Rot, timeStep):
     global cspeed
     while (currentspeed != desiredSpeed):
         if (desiredSpeed >= currentspeed):
@@ -32,11 +32,11 @@ def Ramp(currentspeed, desiredSpeed, Rot, timeStep):
         time.sleep(timeStep)
         print(currentspeed)
 
-    print("Ramped")
+    print("RampSpeeded")
     cspeed = currentspeed
 
 
 print("start")
-Drive(0.0, 0.3, 10)
-Drive(0.0, -0.3, 9)
+Drive(0.0, 1, 5)
+Drive(0.0, -1, 5)
 Drive(0.0, 0.0, 0)
